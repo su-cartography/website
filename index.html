@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery of Possibilities</title>
+  <meta name="description" content="A feminist map icon gallery and QGIS plugin.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+
+  <header>
+    <a class="brand" href="index.html">
+      <img src="assets/logo.png" width="40" height="40" alt="Gallery of Possibilities logo">
+      Gallery of Possibilities
+    </a>
+    <nav aria-label="Primary">
+      <a href="#search">Search</a>
+      <a href="resources.html">Resources</a>
+      <a href="#contribute">Contribute</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <h1><em>Gallery</em> of Possibilities</h1>
+      <p>A feminist map icon gallery and QGIS plugin.</p>
+      <p class="actions">
+        <a class="btn btn-yellow" href="#search">Search</a>
+        <a class="btn" href="resources.html">Resources</a>
+        <a class="btn" href="#contribute">Contribute</a>
+      </p>
+      <img
+        class="preview"
+        src="assets/qgis-preview.png"
+        width="960"
+        height="540"
+        alt="QGIS map of Syracuse with Gallery of Possibilities icons"
+      >
+    </section>
+
+    <section id="gallery" class="gallery">
+      <div class="wrap">
+        <img src="assets/logo.png" width="80" height="80" alt="">
+        <h2>Gallery of Possibilities</h2>
+        <p>
+          The <i>galleryofpossibilities</i> is a feminist mapping tool and an alternative map icon library,
+          grounded in feminist thought and practice that can be integrated into QGIS, an open-source mapping platform, and cartography, more broadly.
+        </p>
+
+        <form id="search" role="search">
+          <label class="sr-only" for="q">Search icons</label>
+          <input id="q" type="search" placeholder="Search here..." disabled>
+        </form>
+
+        <fieldset>
+          <legend>File Type</legend>
+          <button type="button" class="toggle active">PNG</button>
+          <button type="button" class="toggle">SVG</button>
+        </fieldset>
+
+        <div class="icons" role="status">
+          <p>Icons will be displayed here</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <h2>About the <em>galleryofpossibilities</em></h2>
+      <ul>
+        <li>
+          <h3>Configuration</h3>
+          <p>Map icons and metadata are stored on Zenodo, an open-source repository.</p>
+        </li>
+        <li>
+          <h3>Download and Install</h3>
+          <p>Plug-in can be installed directly through QGIS or manually with zip files available on GitHub.</p>
+        </li>
+        <li>
+          <h3>File Formats</h3>
+          <p>Map icons are served as PNG images and digitized SVGs.</p>
+        </li>
+        <li>
+          <h3>Search and Apply</h3>
+          <p>Filter by tags, place names, designers, and organizations and apply to map.</p>
+        </li>
+        <li>
+          <h3>Style and Symbolize</h3>
+          <p>Customize by adding color and stroke to SVGs and backgrounds for added contrast.</p>
+        </li>
+        <li>
+          <h3>Favorites</h3>
+          <p>Curate and save a custom subset of map icons for a particular use case.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="contribute" class="contribute">
+      <h2>Contribute</h2>
+      <p>
+        Contribute feminist map icons to the gallery.
+        <a href="#">Contribute google form will be here</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      <img src="assets/logo.png" width="32" height="32" alt="">
+      Contact us here: <a href="mailto:mkelly51@syr.edu">mkelly51@syr.edu</a>
+    </p>
+    <p><b>Funders and special thanks: NEH, OSPO, Sloan, FCAR</b></p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
