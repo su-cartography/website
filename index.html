@@ -54,17 +54,28 @@
           <input id="q" type="search" placeholder="Search here..." disabled>
         </form>
 
-        <fieldset>
-          <legend>File Type</legend>
-          <button type="button" class="toggle active">PNG</button>
-          <button type="button" class="toggle">SVG</button>
-        </fieldset>
-
-        <div class="icons" role="status">
-          <p>Icons will be displayed here</p>
+        <div id="icon-grid" class="icons is-status" role="status" aria-live="polite">
+          <p class="icons-status">Loading icons…</p>
         </div>
       </div>
     </section>
+
+    <div id="mini" class="mini" hidden>
+      <div class="mini-backdrop" id="mini-backdrop"></div>
+      <div class="mini-page" role="dialog" aria-modal="true" aria-labelledby="mini-title">
+        <button type="button" id="detail-close" class="detail-close" aria-label="Close details">×</button>
+        <h2 id="mini-title">Icon details</h2>
+        <img id="detail-preview" class="detail-preview" alt="">
+        <p id="format-status" class="format-status" hidden></p>
+        <h3>Metadata</h3>
+        <dl id="detail-meta" class="detail-meta"></dl>
+        <h3>Icon Format</h3>
+        <div class="format" role="group" aria-label="Icon format">
+          <button type="button" class="format-btn is-active" data-format="png" aria-pressed="true">PNG</button>
+          <button type="button" class="format-btn" data-format="svg" aria-pressed="false">SVG</button>
+        </div>
+      </div>
+    </div>
 
     <section id="about" class="about">
       <h2>About the <em>galleryofpossibilities</em></h2>
@@ -113,6 +124,8 @@
     <p><b>Funders and special thanks: NEH, OSPO, Sloan, FCAR</b></p>
   </footer>
 
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
