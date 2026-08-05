@@ -130,12 +130,13 @@ function renderGrid() {
   const $grid = $("#icon-grid").removeClass("is-status is-error").empty();
   icons.forEach((icon, i) => {
     $grid.append(
-      `<button type="button" class="icon-card" data-i="${i}">
+      `<button type="button" class="icon-card" data-i="${i}" style="--i:${i}">
         <img src="${icon.png}" alt="" loading="lazy" width="128" height="128">
         <span>${icon.label}</span>
       </button>`
     );
   });
+  requestAnimationFrame(() => $grid.find(".icon-card").addClass("is-in"));
 }
 
 async function openMini(i) {
@@ -149,21 +150,25 @@ async function openMini(i) {
   $("#mini-title").text(selected.label || "Icon details");
   $("#detail-preview").attr({ src: selected.png, alt: selected.label || selected.id });
   $("#detail-meta").html(
-    FIELDS.map(([key, label]) => {
+    FIELDS.map(([key, label], m) => {
       const value = selected.meta[key] || "";
-      return `<div><dt>${label}</dt><dd>${value || "—"}</dd></div>`;
+      return `<div style="--m:${m}"><dt>${label}</dt><dd>${value || "—"}</dd></div>`;
     }).join("")
   );
 
-  $("#mini").prop("hidden", false);
+  const $mini = $("#mini").prop("hidden", false);
   $("body").addClass("mini-open");
+  requestAnimationFrame(() => requestAnimationFrame(() => $mini.addClass("is-open")));
 }
 
 function closeMini() {
-  selected = null;
-  $("#mini").prop("hidden", true);
-  $("body").removeClass("mini-open");
-  $(".icon-card").removeClass("is-selected");
+  const $mini = $("#mini").removeClass("is-open");
+  setTimeout(() => {
+    selected = null;
+    $mini.prop("hidden", true);
+    $("body").removeClass("mini-open");
+    $(".icon-card").removeClass("is-selected");
+  }, 250);
 }
 
 async function loadGallery() {
@@ -208,6 +213,32 @@ async function loadGallery() {
 $(function () {
   loadGallery();
 
+  // Sticky header shadow + scroll reveals
+  const onScroll = () => $("header").toggleClass("is-scrolled", $(window).scrollTop() > 8);
+  $(window).on("scroll", onScroll);
+  onScroll();
+
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && $(e.target).addClass("is-visible")),
+      { threshold: 0.15 }
+    );
+    $(".reveal").each(function () {
+      io.observe(this);
+    });
+  } else {
+    $(".reveal").addClass("is-visible");
+  }
+
+  // Smooth in-page nav
+  $('a[href^="#"]').on("click", function (e) {
+    const id = $(this).attr("href");
+    if (id.length > 1 && $(id).length) {
+      e.preventDefault();
+      $("html, body").animate({ scrollTop: $(id).offset().top - 72 }, 450);
+    }
+  });
+
   $("#icon-grid").on("click", ".icon-card", function () {
     openMini(+$(this).data("i"));
   });
@@ -221,6 +252,9 @@ $(function () {
   $("#mini").on("click", ".format-btn", async function () {
     if (!selected) return;
     setFormat($(this).data("format"));
-    $("#detail-preview").attr("src", await previewSrc(selected));
+    const $preview = $("#detail-preview").addClass("is-swapping");
+    const src = await previewSrc(selected);
+    $preview.attr("src", src);
+    setTimeout(() => $preview.removeClass("is-swapping"), 180);
   });
 });
