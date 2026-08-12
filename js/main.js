@@ -119,6 +119,44 @@ function setFormat(next) {
   $(`.format-btn[data-format="${next}"]`).addClass("is-active").attr("aria-pressed", "true");
 }
 
+function enableDownloads() {
+  $(".dl-btn").prop("disabled", false);
+}
+
+async function downloadZenodoFile(filename) {
+  const url = files[filename];
+  if (!url) {
+    alert("Download link is not ready yet. Wait for icons to finish loading.");
+    return;
+  }
+
+  const $btn = $(`.dl-btn[data-file="${filename}"]`);
+  const $label = $btn.find(".dl-label");
+  const label = $label.text();
+  $btn.prop("disabled", true);
+  $label.text("Downloading…");
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Download failed (${res.status})`);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (err) {
+    console.error(err);
+    alert("Could not download that file. Please try again.");
+  } finally {
+    $btn.prop("disabled", false);
+    $label.text(label);
+  }
+}
+
 function showStatus(msg, error) {
   $("#icon-grid")
     .addClass("is-status")
@@ -204,6 +242,7 @@ async function loadGallery() {
     ).filter(Boolean);
 
     renderGrid();
+    enableDownloads();
   } catch (err) {
     console.error(err);
     showStatus("Could not load icons. Use a local server (http://localhost), not a file:// page.", true);
@@ -241,6 +280,10 @@ $(function () {
 
   $("#icon-grid").on("click", ".icon-card", function () {
     openMini(+$(this).data("i"));
+  });
+
+  $(".dl-btn").on("click", function () {
+    downloadZenodoFile($(this).data("file"));
   });
 
   $("#detail-close, #mini-backdrop").on("click", closeMini);

@@ -328,6 +328,50 @@ nav a[aria-current="page"]::after {
   scrollbar-color: var(--purple) transparent;
 }
 
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.dl-btn {
+  display: inline-block;
+  padding: 0.65rem 1.15rem;
+  border: 0;
+  border-radius: 0.375rem;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.dl-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.dl-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+.dl-png {
+  background: #2f6fed;
+}
+
+.dl-svg {
+  background: #c43d8a;
+}
+
+.dl-csv {
+  background: #2f9e5b;
+}
+
 .icons.is-status {
   min-height: 12rem;
   display: grid;
