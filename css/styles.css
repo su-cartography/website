@@ -313,6 +313,62 @@ nav a[aria-current="page"]::after {
   cursor: not-allowed;
 }
 
+.grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.format-mode {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--purple);
+}
+
+.rainbow-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(91, 61, 154, 0.25);
+  background: conic-gradient(
+    #ff3b3b,
+    #ff9f1a,
+    #ffd60a,
+    #2ec4b6,
+    #3a86ff,
+    #9b5de5,
+    #ff3b3b
+  );
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.rainbow-toggle:hover {
+  transform: scale(1.08) rotate(12deg);
+  box-shadow: 0 6px 16px rgba(91, 61, 154, 0.35);
+}
+
+.rainbow-toggle.is-svg {
+  background: conic-gradient(
+    #111,
+    #777,
+    #fff,
+    #777,
+    #111
+  );
+  box-shadow: 0 0 0 3px rgba(91, 61, 154, 0.35), 0 6px 16px rgba(91, 61, 154, 0.3);
+}
+
+.rainbow-toggle:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
 .icons {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));

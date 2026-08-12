@@ -54,6 +54,20 @@
           <input id="q" type="search" placeholder="Search here..." disabled>
         </form>
 
+        <div class="grid-toolbar">
+          <p id="format-mode" class="format-mode">Showing PNGs</p>
+          <button
+            type="button"
+            id="rainbow-toggle"
+            class="rainbow-toggle"
+            aria-pressed="false"
+            title="Switch between PNG and SVG"
+            aria-label="Switch between PNG and SVG icons"
+          >
+            <span class="sr-only">Toggle PNG / SVG</span>
+          </button>
+        </div>
+
         <div id="icon-grid" class="icons is-status" role="status" aria-live="polite">
           <p class="icons-status">Loading icons…</p>
         </div>

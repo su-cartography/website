@@ -91,6 +91,20 @@ async function ensureSvgZip() {
   svgZip = await JSZip.loadAsync(await res.arrayBuffer());
 }
 
+async function ensureAllSvgs() {
+  await ensureSvgZip();
+  await Promise.all(
+    icons.map(async (icon) => {
+      if (!icon.svg) icon.svg = await fileFromZip(svgZip, "svg", icon.id);
+    })
+  );
+}
+
+function iconSrc(icon) {
+  if (format === "svg") return icon.svg || icon.png;
+  return icon.png;
+}
+
 async function previewSrc(icon) {
   if (format === "png") return icon.png;
 
@@ -117,6 +131,31 @@ function setFormat(next) {
   format = next;
   $(".format-btn").removeClass("is-active").attr("aria-pressed", "false");
   $(`.format-btn[data-format="${next}"]`).addClass("is-active").attr("aria-pressed", "true");
+  $("#rainbow-toggle")
+    .toggleClass("is-svg", next === "svg")
+    .attr("aria-pressed", next === "svg" ? "true" : "false");
+  $("#format-mode").text(next === "svg" ? "Showing SVGs" : "Showing PNGs");
+}
+
+async function setGridFormat(next) {
+  if (next === format && icons.length) {
+    renderGrid();
+    return;
+  }
+
+  if (next === "svg") {
+    showStatus("Loading SVGs…");
+    try {
+      await ensureAllSvgs();
+    } catch (err) {
+      console.error(err);
+      showStatus("Could not load SVG zip from Zenodo.", true);
+      return;
+    }
+  }
+
+  setFormat(next);
+  renderGrid();
 }
 
 function enableDownloads() {
@@ -169,7 +208,7 @@ function renderGrid() {
   icons.forEach((icon, i) => {
     $grid.append(
       `<button type="button" class="icon-card" data-i="${i}" style="--i:${i}">
-        <img src="${icon.png}" alt="" loading="lazy" width="128" height="128">
+        <img src="${iconSrc(icon)}" alt="" loading="lazy" width="128" height="128">
         <span>${icon.label}</span>
       </button>`
     );
@@ -179,20 +218,25 @@ function renderGrid() {
 
 async function openMini(i) {
   selected = icons[i];
-  setFormat("png");
+  setFormat(format);
   $("#format-status").prop("hidden", true).text("");
 
   $(".icon-card").removeClass("is-selected");
   $(`.icon-card[data-i="${i}"]`).addClass("is-selected");
 
   $("#mini-title").text(selected.label || "Icon details");
-  $("#detail-preview").attr({ src: selected.png, alt: selected.label || selected.id });
+  $("#detail-preview").attr({ src: iconSrc(selected), alt: selected.label || selected.id });
   $("#detail-meta").html(
     FIELDS.map(([key, label], m) => {
       const value = selected.meta[key] || "";
       return `<div style="--m:${m}"><dt>${label}</dt><dd>${value || "—"}</dd></div>`;
     }).join("")
   );
+
+  // If current mode is SVG, make sure this icon's SVG is ready for the preview
+  if (format === "svg") {
+    $("#detail-preview").attr("src", await previewSrc(selected));
+  }
 
   const $mini = $("#mini").prop("hidden", false);
   $("body").addClass("mini-open");
@@ -286,6 +330,13 @@ $(function () {
     downloadZenodoFile($(this).data("file"));
   });
 
+  $("#rainbow-toggle").on("click", async function () {
+    const next = format === "png" ? "svg" : "png";
+    $(this).prop("disabled", true);
+    await setGridFormat(next);
+    $(this).prop("disabled", false);
+  });
+
   $("#detail-close, #mini-backdrop").on("click", closeMini);
 
   $(document).on("keydown", function (e) {
@@ -294,10 +345,10 @@ $(function () {
 
   $("#mini").on("click", ".format-btn", async function () {
     if (!selected) return;
-    setFormat($(this).data("format"));
+    const next = $(this).data("format");
+    await setGridFormat(next);
     const $preview = $("#detail-preview").addClass("is-swapping");
-    const src = await previewSrc(selected);
-    $preview.attr("src", src);
+    $preview.attr("src", await previewSrc(selected));
     setTimeout(() => $preview.removeClass("is-swapping"), 180);
   });
 });
