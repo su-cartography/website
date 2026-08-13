@@ -50,8 +50,20 @@
         </p>
 
         <form id="search" role="search">
-          <label class="sr-only" for="q">Search icons</label>
-          <input id="q" type="search" placeholder="Search here..." disabled>
+          <label class="sr-only" for="q">Search icons by tags, geography, or designer</label>
+          <div class="search-field">
+            <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+            <input
+              id="q"
+              type="search"
+              placeholder="Search by tags, geography, or designer…"
+              autocomplete="off"
+            >
+          </div>
+          <p id="search-count" class="search-count" hidden></p>
         </form>
 
         <div class="grid-toolbar">

@@ -139,7 +139,7 @@ function setFormat(next) {
 
 async function setGridFormat(next) {
   if (next === format && icons.length) {
-    renderGrid();
+    applySearch();
     return;
   }
 
@@ -155,7 +155,7 @@ async function setGridFormat(next) {
   }
 
   setFormat(next);
-  renderGrid();
+  applySearch();
 }
 
 function enableDownloads() {
@@ -199,21 +199,70 @@ async function downloadZenodoFile(filename) {
 function showStatus(msg, error) {
   $("#icon-grid")
     .addClass("is-status")
+    .removeClass("is-empty")
     .toggleClass("is-error", !!error)
     .html(`<p class="icons-status">${msg}</p>`);
 }
 
-function renderGrid() {
-  const $grid = $("#icon-grid").removeClass("is-status is-error").empty();
-  icons.forEach((icon, i) => {
+function matchesQuery(icon, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  const m = icon.meta || {};
+  const haystack = [
+    m["primary-tags"],
+    m["secondary-tags"],
+    m["icon-geography"],
+    m.designer,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(q);
+}
+
+function filteredIcons() {
+  const query = ($("#q").val() || "").trim();
+  return icons.filter((icon) => matchesQuery(icon, query));
+}
+
+function updateSearchCount(shown) {
+  const $count = $("#search-count");
+  const query = ($("#q").val() || "").trim();
+  if (!icons.length || !query) {
+    $count.prop("hidden", true).text("");
+    return;
+  }
+  $count.prop("hidden", false).text(`${shown} of ${icons.length} icons`);
+}
+
+function renderGrid(list) {
+  const items = list || filteredIcons();
+  const $grid = $("#icon-grid").removeClass("is-status is-error is-empty").empty();
+  updateSearchCount(items.length);
+
+  if (!items.length) {
+    const msg = ($("#q").val() || "").trim()
+      ? "No icons match your search."
+      : "No icons found.";
+    $grid.addClass("is-status is-empty").html(`<p class="icons-status">${msg}</p>`);
+    return;
+  }
+
+  items.forEach((icon, i) => {
+    const index = icons.indexOf(icon);
     $grid.append(
-      `<button type="button" class="icon-card" data-i="${i}" style="--i:${i}">
+      `<button type="button" class="icon-card" data-i="${index}" style="--i:${i}">
         <img src="${iconSrc(icon)}" alt="" loading="lazy" width="128" height="128">
         <span>${icon.label}</span>
       </button>`
     );
   });
   requestAnimationFrame(() => $grid.find(".icon-card").addClass("is-in"));
+}
+
+function applySearch() {
+  if (!icons.length) return;
+  renderGrid(filteredIcons());
 }
 
 async function openMini(i) {
@@ -285,7 +334,7 @@ async function loadGallery() {
       )
     ).filter(Boolean);
 
-    renderGrid();
+    applySearch();
     enableDownloads();
   } catch (err) {
     console.error(err);
@@ -321,6 +370,13 @@ $(function () {
       $("html, body").animate({ scrollTop: $(id).offset().top - 72 }, 450);
     }
   });
+
+  $("#search").on("submit", function (e) {
+    e.preventDefault();
+    applySearch();
+  });
+
+  $("#q").on("input", applySearch);
 
   $("#icon-grid").on("click", ".icon-card", function () {
     openMini(+$(this).data("i"));
