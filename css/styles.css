@@ -663,10 +663,10 @@ body.mini-open {
 
 .detail-preview {
   width: 100%;
-  max-width: 14rem;
+  max-width: 10rem;
   aspect-ratio: 1;
   object-fit: contain;
-  margin: 0 auto 1rem;
+  margin: 0;
   padding: 0.75rem;
   border: 1px dashed var(--border);
   border-radius: 0.5rem;
@@ -675,13 +675,109 @@ body.mini-open {
   transition: transform 0.35s var(--ease), opacity 0.25s;
 }
 
-.detail-preview.is-swapping {
-  opacity: 0.35;
-  transform: scale(0.94);
+.mini-visual {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 1.25rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mini-dl {
+  position: relative;
+  align-self: center;
+}
+
+.mini-dl-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(91, 61, 154, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff 0%, #f8f5fc 100%);
+  color: var(--purple);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(91, 61, 154, 0.1);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.mini-dl-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(91, 61, 154, 0.45);
+  box-shadow: 0 6px 16px rgba(91, 61, 154, 0.16);
+}
+
+.mini-dl-toggle[aria-expanded="true"] {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(91, 61, 154, 0.28);
+}
+
+.mini-dl-toggle[aria-expanded="true"] .mini-dl-caret {
+  transform: rotate(180deg);
+}
+
+.mini-dl-icon {
+  flex-shrink: 0;
+}
+
+.mini-dl-caret {
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: transform 0.2s var(--ease);
+}
+
+.mini-dl-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 2;
+  min-width: 11rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.55rem;
+  background: #2a2238;
+  box-shadow: 0 14px 36px rgba(20, 12, 35, 0.35);
+}
+
+.mini-dl-menu[hidden] {
+  display: none;
+}
+
+.mini-dl-option {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #f3edf8;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mini-dl-option:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mini-dl-option:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 .format-status {
-  margin: 0 0 0.75rem;
+  grid-column: 1 / -1;
+  margin: 0;
   font-size: 0.85rem;
   color: var(--muted);
 }
@@ -733,6 +829,11 @@ body.mini-open {
 .format {
   display: flex;
   gap: 0.5rem;
+}
+
+.detail-preview.is-swapping {
+  opacity: 0.35;
+  transform: scale(0.94);
 }
 
 .format-btn {

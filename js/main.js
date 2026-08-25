@@ -68,18 +68,23 @@ function svgForBrowser(text) {
   return text.replace(/param\([^)]+\),\s*/g, "").replace(/param\([^)]+\)/g, "#000");
 }
 
-async function fileFromZip(zip, kind, id) {
+async function blobFromZip(zip, kind, id) {
   const path = `map-icon-${kind}/${id}.${kind}`;
   const file = zip.file(path);
   if (!file) return null;
 
   if (kind === "svg") {
     const text = svgForBrowser(await file.async("text"));
-    return URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
+    return new Blob([text], { type: "image/svg+xml" });
   }
 
   const bytes = await file.async("arraybuffer");
-  return URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
+  return new Blob([bytes], { type: "image/png" });
+}
+
+async function fileFromZip(zip, kind, id) {
+  const blob = await blobFromZip(zip, kind, id);
+  return blob ? URL.createObjectURL(blob) : null;
 }
 
 async function ensureSvgZip() {
@@ -159,40 +164,118 @@ async function setGridFormat(next) {
 }
 
 function enableDownloads() {
-  $(".dl-btn").prop("disabled", false);
+  $(".downloads .dl-btn").prop("disabled", false);
+}
+
+function triggerDownload(url, filename) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function saveBlob(blob, filename) {
+  const file =
+    blob.type && blob.type !== "application/octet-stream"
+      ? new Blob([blob], { type: "application/octet-stream" })
+      : blob;
+  const objectUrl = URL.createObjectURL(file);
+  triggerDownload(objectUrl, filename);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function saveFile(blob, filename) {
+  if (window.showSaveFilePicker) {
+    try {
+      const ext = filename.includes(".") ? filename.slice(filename.lastIndexOf(".")) : "";
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: ext
+          ? [{ description: "File", accept: { [blob.type || "application/octet-stream"]: [ext] } }]
+          : undefined,
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch (err) {
+      if (err.name === "AbortError") return;
+    }
+  }
+  saveBlob(blob, filename);
+}
+
+async function ensureIconSvg(icon) {
+  if (icon.svg) return icon.svg;
+  await ensureSvgZip();
+  icon.svg = await fileFromZip(svgZip, "svg", icon.id);
+  return icon.svg;
+}
+
+async function downloadSelectedIcon(kind, $btn) {
+  if (!selected) return;
+  const filename = `${selected.id}.${kind}`;
+
+  // Chrome needs the download click in the same user gesture — no await before this.
+  if (kind === "png") {
+    if (!selected.png) {
+      alert("This icon’s PNG is not loaded yet.");
+      return;
+    }
+    triggerDownload(selected.png, filename);
+    return;
+  }
+
+  if (selected.svg) {
+    triggerDownload(selected.svg, filename);
+    return;
+  }
+
+  const label = $btn.text();
+  $btn.prop("disabled", true).text("Loading…");
+
+  try {
+    await ensureSvgZip();
+    const blob = await blobFromZip(svgZip, "svg", selected.id);
+    if (!blob) {
+      alert(`No SVG file named ${selected.id}.svg in the zip.`);
+      return;
+    }
+    selected.svg = URL.createObjectURL(blob);
+    // After async work Chrome blocks silent downloads — use Save dialog when available.
+    await saveFile(blob, filename);
+  } catch (err) {
+    console.error(err);
+    alert("Could not download that SVG.");
+  } finally {
+    $btn.prop("disabled", false).text(label);
+  }
 }
 
 async function downloadZenodoFile(filename) {
+  filename = filename || "";
   const url = files[filename];
   if (!url) {
     alert("Download link is not ready yet. Wait for icons to finish loading.");
     return;
   }
 
-  const $btn = $(`.dl-btn[data-file="${filename}"]`);
-  const $label = $btn.find(".dl-label");
-  const label = $label.text();
-  $btn.prop("disabled", true);
-  $label.text("Downloading…");
+  const $btn = $(`.downloads .dl-btn[data-file="${filename}"]`);
+  const label = $btn.text();
+  $btn.prop("disabled", true).text("Downloading…");
 
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Download failed (${res.status})`);
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objectUrl);
+    saveBlob(await res.blob(), filename);
   } catch (err) {
     console.error(err);
-    alert("Could not download that file. Please try again.");
+    window.open(url, "_blank", "noopener");
   } finally {
-    $btn.prop("disabled", false);
-    $label.text(label);
+    $btn.prop("disabled", false).text(label);
   }
 }
 
@@ -265,8 +348,22 @@ function applySearch() {
   renderGrid(filteredIcons());
 }
 
+function closeMiniDlMenu() {
+  $("#mini-dl-toggle").attr("aria-expanded", "false");
+  $("#mini-dl-menu").prop("hidden", true);
+}
+
+function toggleMiniDlMenu() {
+  const $toggle = $("#mini-dl-toggle");
+  const open = $toggle.attr("aria-expanded") === "true";
+  $toggle.attr("aria-expanded", open ? "false" : "true");
+  $("#mini-dl-menu").prop("hidden", open);
+  if (!open && selected) ensureIconSvg(selected).catch(console.error);
+}
+
 async function openMini(i) {
   selected = icons[i];
+  closeMiniDlMenu();
   setFormat(format);
   $("#format-status").prop("hidden", true).text("");
 
@@ -285,6 +382,9 @@ async function openMini(i) {
   // If current mode is SVG, make sure this icon's SVG is ready for the preview
   if (format === "svg") {
     $("#detail-preview").attr("src", await previewSrc(selected));
+  } else {
+    // Preload SVG in the background so Chrome can download it on the first click.
+    ensureIconSvg(selected).catch(console.error);
   }
 
   const $mini = $("#mini").prop("hidden", false);
@@ -293,6 +393,7 @@ async function openMini(i) {
 }
 
 function closeMini() {
+  closeMiniDlMenu();
   const $mini = $("#mini").removeClass("is-open");
   setTimeout(() => {
     selected = null;
@@ -382,8 +483,27 @@ $(function () {
     openMini(+$(this).data("i"));
   });
 
-  $(".dl-btn").on("click", function () {
-    downloadZenodoFile($(this).data("file"));
+  $(".downloads .dl-btn").on("click", function () {
+    downloadZenodoFile($(this).attr("data-file"));
+  });
+
+  $("#mini").on("click", ".mini-dl-option", function (e) {
+    e.stopPropagation();
+    downloadSelectedIcon($(this).attr("data-kind"), $(this));
+    closeMiniDlMenu();
+  });
+
+  $("#mini-dl-toggle").on("click", function (e) {
+    e.stopPropagation();
+    toggleMiniDlMenu();
+  });
+
+  $("#mini-dl").on("mouseenter", function () {
+    if (selected) ensureIconSvg(selected).catch(console.error);
+  });
+
+  $(document).on("click", function () {
+    if ($("#mini-dl-toggle").attr("aria-expanded") === "true") closeMiniDlMenu();
   });
 
   $("#rainbow-toggle").on("click", async function () {
@@ -396,7 +516,12 @@ $(function () {
   $("#detail-close, #mini-backdrop").on("click", closeMini);
 
   $(document).on("keydown", function (e) {
-    if (e.key === "Escape" && !$("#mini").prop("hidden")) closeMini();
+    if (e.key !== "Escape") return;
+    if ($("#mini-dl-toggle").attr("aria-expanded") === "true") {
+      closeMiniDlMenu();
+      return;
+    }
+    if (!$("#mini").prop("hidden")) closeMini();
   });
 
   $("#mini").on("click", ".format-btn", async function () {

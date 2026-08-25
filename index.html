@@ -97,8 +97,34 @@
       <div class="mini-page" role="dialog" aria-modal="true" aria-labelledby="mini-title">
         <button type="button" id="detail-close" class="detail-close" aria-label="Close details">×</button>
         <h2 id="mini-title">Icon details</h2>
-        <img id="detail-preview" class="detail-preview" alt="">
-        <p id="format-status" class="format-status" hidden></p>
+        <div class="mini-visual">
+          <img id="detail-preview" class="detail-preview" alt="">
+          <div class="mini-dl" id="mini-dl">
+            <button
+              type="button"
+              id="mini-dl-toggle"
+              class="mini-dl-toggle"
+              aria-expanded="false"
+              aria-haspopup="menu"
+              aria-controls="mini-dl-menu"
+            >
+              <svg class="mini-dl-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12"></path>
+                <path d="m7 10 5 5 5-5"></path>
+                <path d="M5 21h14"></path>
+              </svg>
+              <span>Download</span>
+              <svg class="mini-dl-caret" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </button>
+            <div id="mini-dl-menu" class="mini-dl-menu" role="menu" hidden>
+              <button type="button" class="mini-dl-option" role="menuitem" data-kind="png">…as PNG</button>
+              <button type="button" class="mini-dl-option" role="menuitem" data-kind="svg">…as SVG</button>
+            </div>
+          </div>
+          <p id="format-status" class="format-status" hidden></p>
+        </div>
         <h3>Metadata</h3>
         <dl id="detail-meta" class="detail-meta"></dl>
         <h3>Icon Format</h3>
