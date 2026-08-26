@@ -68,27 +68,38 @@
 
         <div class="grid-toolbar">
           <p id="format-mode" class="format-mode">Showing PNGs</p>
-          <button
-            type="button"
-            id="rainbow-toggle"
-            class="rainbow-toggle"
-            aria-pressed="false"
-            title="Switch between PNG and SVG"
-            aria-label="Switch between PNG and SVG icons"
-          >
-            <span class="sr-only">Toggle PNG / SVG</span>
-          </button>
+          <div class="grid-toolbar-actions">
+            <button type="button" id="select-toggle" class="select-toggle" aria-pressed="false">Select</button>
+
+            <button
+              type="button"
+              id="rainbow-toggle"
+              class="rainbow-toggle"
+              aria-pressed="false"
+              title="Switch between PNG and SVG"
+              aria-label="Switch between PNG and SVG icons"
+            >
+              <span class="sr-only">Toggle PNG / SVG</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="select-bar" class="select-bar" hidden>
+          <p id="select-count" class="select-count">0 selected</p>
+          <div class="select-bar-actions">
+            <button type="button" id="select-all" class="select-bar-btn">Select all</button>
+            <button type="button" id="select-clear" class="select-bar-btn">Clear</button>
+            <button type="button" id="select-dl-png" class="dl-btn dl-png" disabled>Download PNGs</button>
+            <button type="button" id="select-dl-svg" class="dl-btn dl-svg" disabled>Download SVGs</button>
+            <button type="button" id="select-dl-csv" class="dl-btn dl-csv" disabled>Download metadata</button>
+            <button type="button" id="select-done" class="select-bar-btn select-done">Done</button>
+          </div>
         </div>
 
         <div id="icon-grid" class="icons is-status" role="status" aria-live="polite">
           <p class="icons-status">Loading icons…</p>
         </div>
 
-        <div class="downloads" aria-label="Dataset downloads">
-          <button type="button" id="dl-png" class="dl-btn dl-png" data-file="map-icon-png.zip">Download All PNGs</button>
-          <button type="button" id="dl-svg" class="dl-btn dl-svg" data-file="map-icon-svg.zip">Download All SVGs</button>
-          <button type="button" id="dl-csv" class="dl-btn dl-csv" data-file="map-icon-metadata.csv">Download metadata</button>
-        </div>
       </div>
     </section>
 

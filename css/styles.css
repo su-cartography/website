@@ -375,6 +375,94 @@ nav a[aria-current="page"]::after {
   margin: 0 0 0.75rem;
 }
 
+.grid-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.select-toggle {
+  padding: 0.45rem 0.95rem;
+  border: 1px solid rgba(91, 61, 154, 0.35);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--purple);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.select-toggle:hover {
+  border-color: var(--purple);
+  box-shadow: 0 4px 12px rgba(91, 61, 154, 0.12);
+}
+
+.select-toggle[aria-pressed="true"] {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+
+.select-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(91, 61, 154, 0.18);
+  border-radius: 0.65rem;
+  background: linear-gradient(180deg, #fbf8ff 0%, #f3eef9 100%);
+}
+
+.select-bar[hidden] {
+  display: none;
+}
+
+.select-count {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--purple);
+}
+
+.select-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.select-bar-btn {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid rgba(91, 61, 154, 0.25);
+  border-radius: 0.375rem;
+  background: #fff;
+  color: var(--purple);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.select-bar-btn:hover {
+  border-color: var(--purple);
+}
+
+.select-done {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: #fff;
+}
+
+.select-bar .dl-btn {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+}
+
 .format-mode {
   margin: 0;
   font-size: 0.9rem;
@@ -436,14 +524,6 @@ nav a[aria-current="page"]::after {
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.45);
   scrollbar-color: var(--purple) transparent;
-}
-
-.downloads {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
 }
 
 .dl-btn {
@@ -523,6 +603,7 @@ nav a[aria-current="page"]::after {
 }
 
 .icon-card {
+  position: relative;
   margin: 0;
   padding: 0.75rem;
   background: #fff;
@@ -541,6 +622,38 @@ nav a[aria-current="page"]::after {
     background 0.2s,
     box-shadow 0.25s var(--ease);
   transition-delay: calc(min(var(--i, 0), 36) * 18ms);
+}
+
+.icons.is-selecting .icon-card {
+  padding-top: 1.35rem;
+}
+
+.icon-check-wrap {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.icon-check {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--purple);
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.icon-card.is-picked {
+  border-color: var(--purple);
+  background: #f7f1fc;
+  box-shadow: 0 0 0 2px rgba(91, 61, 154, 0.18);
 }
 
 .icon-card.is-in {

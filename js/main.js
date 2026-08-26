@@ -24,6 +24,8 @@ let pngZip;
 let svgZip;
 let selected = null;
 let format = "png";
+let selectMode = false;
+const picked = new Set();
 
 function parseCSV(text) {
   const src = text.replace(/^\uFEFF/, "");
@@ -163,10 +165,6 @@ async function setGridFormat(next) {
   applySearch();
 }
 
-function enableDownloads() {
-  $(".downloads .dl-btn").prop("disabled", false);
-}
-
 function triggerDownload(url, filename) {
   const a = document.createElement("a");
   a.href = url;
@@ -255,30 +253,6 @@ async function downloadSelectedIcon(kind, $btn) {
   }
 }
 
-async function downloadZenodoFile(filename) {
-  filename = filename || "";
-  const url = files[filename];
-  if (!url) {
-    alert("Download link is not ready yet. Wait for icons to finish loading.");
-    return;
-  }
-
-  const $btn = $(`.downloads .dl-btn[data-file="${filename}"]`);
-  const label = $btn.text();
-  $btn.prop("disabled", true).text("Downloading…");
-
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Download failed (${res.status})`);
-    saveBlob(await res.blob(), filename);
-  } catch (err) {
-    console.error(err);
-    window.open(url, "_blank", "noopener");
-  } finally {
-    $btn.prop("disabled", false).text(label);
-  }
-}
-
 function showStatus(msg, error) {
   $("#icon-grid")
     .addClass("is-status")
@@ -318,6 +292,98 @@ function updateSearchCount(shown) {
   $count.prop("hidden", false).text(`${shown} of ${icons.length} icons`);
 }
 
+function pickedIcons() {
+  return icons.filter((icon) => picked.has(icon.id));
+}
+
+function updateSelectBar() {
+  const n = picked.size;
+  $("#select-count").text(n === 1 ? "1 selected" : `${n} selected`);
+  $("#select-dl-png, #select-dl-svg, #select-dl-csv").prop("disabled", n === 0);
+  $("#select-bar").prop("hidden", !selectMode);
+  $("#select-toggle")
+    .attr("aria-pressed", selectMode ? "true" : "false")
+    .text(selectMode ? "Selecting…" : "Select");
+  $("#icon-grid").toggleClass("is-selecting", selectMode);
+}
+
+function setSelectMode(on) {
+  selectMode = !!on;
+  if (!selectMode) picked.clear();
+  if (!$("#mini").prop("hidden")) closeMini();
+  updateSelectBar();
+  applySearch();
+}
+
+function togglePicked(id) {
+  if (picked.has(id)) picked.delete(id);
+  else picked.add(id);
+  updateSelectBar();
+  $(`.icon-card[data-id="${id}"]`).toggleClass("is-picked", picked.has(id));
+  $(`.icon-card[data-id="${id}"] .icon-check`).prop("checked", picked.has(id));
+}
+
+function csvEscape(value) {
+  const text = String(value == null ? "" : value);
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function selectedMetadataCsv(list) {
+  const headers = ["unique-ID", ...FIELDS.map(([key]) => key)];
+  const lines = [headers.join(",")];
+  list.forEach((icon) => {
+    const row = headers.map((key) => {
+      if (key === "unique-ID") return csvEscape(icon.id);
+      return csvEscape((icon.meta && icon.meta[key]) || "");
+    });
+    lines.push(row.join(","));
+  });
+  return lines.join("\r\n");
+}
+
+async function downloadPicked(kind, $btn) {
+  const list = pickedIcons();
+  if (!list.length) return;
+
+  const label = $btn.text();
+  $btn.prop("disabled", true).text("Preparing…");
+
+  try {
+    if (kind === "csv") {
+      const blob = new Blob([selectedMetadataCsv(list)], { type: "text/csv;charset=utf-8" });
+      await saveFile(blob, "selected-icons-metadata.csv");
+      return;
+    }
+
+    if (kind === "svg") await ensureSvgZip();
+    if (kind === "png" && !pngZip) throw new Error("PNG zip is not loaded yet.");
+
+    const out = new JSZip();
+    let added = 0;
+    for (const icon of list) {
+      const blob = await blobFromZip(kind === "png" ? pngZip : svgZip, kind, icon.id);
+      if (!blob) continue;
+      out.file(`${icon.id}.${kind}`, blob);
+      added++;
+    }
+
+    if (!added) {
+      alert(`None of the selected icons had a ${kind.toUpperCase()} file.`);
+      return;
+    }
+
+    const zipBlob = await out.generateAsync({ type: "blob" });
+    await saveFile(zipBlob, `selected-icons-${kind}.zip`);
+  } catch (err) {
+    console.error(err);
+    alert(`Could not prepare that ${kind.toUpperCase()} download.`);
+  } finally {
+    $btn.prop("disabled", false).text(label);
+    updateSelectBar();
+  }
+}
+
 function renderGrid(list) {
   const items = list || filteredIcons();
   const $grid = $("#icon-grid").removeClass("is-status is-error is-empty").empty();
@@ -328,19 +394,28 @@ function renderGrid(list) {
       ? "No icons match your search."
       : "No icons found.";
     $grid.addClass("is-status is-empty").html(`<p class="icons-status">${msg}</p>`);
+    updateSelectBar();
     return;
   }
 
   items.forEach((icon, i) => {
     const index = icons.indexOf(icon);
+    const isPicked = picked.has(icon.id);
+    const check = selectMode
+      ? `<label class="icon-check-wrap" aria-label="Select ${icon.label || icon.id}">
+          <input type="checkbox" class="icon-check" ${isPicked ? "checked" : ""} tabindex="-1">
+        </label>`
+      : "";
     $grid.append(
-      `<button type="button" class="icon-card" data-i="${index}" style="--i:${i}">
+      `<div class="icon-card${isPicked ? " is-picked" : ""}" role="button" tabindex="0" data-i="${index}" data-id="${icon.id}" style="--i:${i}">
+        ${check}
         <img src="${iconSrc(icon)}" alt="" loading="lazy" width="128" height="128">
         <span>${icon.label}</span>
-      </button>`
+      </div>`
     );
   });
   requestAnimationFrame(() => $grid.find(".icon-card").addClass("is-in"));
+  updateSelectBar();
 }
 
 function applySearch() {
@@ -436,7 +511,6 @@ async function loadGallery() {
     ).filter(Boolean);
 
     applySearch();
-    enableDownloads();
   } catch (err) {
     console.error(err);
     showStatus("Could not load icons. Use a local server (http://localhost), not a file:// page.", true);
@@ -479,12 +553,57 @@ $(function () {
 
   $("#q").on("input", applySearch);
 
-  $("#icon-grid").on("click", ".icon-card", function () {
-    openMini(+$(this).data("i"));
+  $("#icon-grid").on("click", ".icon-card", function (e) {
+    const i = +$(this).data("i");
+    if (selectMode) {
+      e.preventDefault();
+      togglePicked(icons[i].id);
+      return;
+    }
+    openMini(i);
   });
 
-  $(".downloads .dl-btn").on("click", function () {
-    downloadZenodoFile($(this).attr("data-file"));
+  $("#icon-grid").on("keydown", ".icon-card", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    $(this).trigger("click");
+  });
+
+  $("#icon-grid").on("click", ".icon-check-wrap", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = $(this).closest(".icon-card").data("id");
+    togglePicked(id);
+  });
+
+  $("#select-toggle").on("click", function () {
+    setSelectMode(!selectMode);
+  });
+
+  $("#select-done").on("click", function () {
+    setSelectMode(false);
+  });
+
+  $("#select-clear").on("click", function () {
+    picked.clear();
+    applySearch();
+  });
+
+  $("#select-all").on("click", function () {
+    filteredIcons().forEach((icon) => picked.add(icon.id));
+    applySearch();
+  });
+
+  $("#select-dl-png").on("click", function () {
+    downloadPicked("png", $(this));
+  });
+
+  $("#select-dl-svg").on("click", function () {
+    downloadPicked("svg", $(this));
+  });
+
+  $("#select-dl-csv").on("click", function () {
+    downloadPicked("csv", $(this));
   });
 
   $("#mini").on("click", ".mini-dl-option", function (e) {
@@ -521,7 +640,11 @@ $(function () {
       closeMiniDlMenu();
       return;
     }
-    if (!$("#mini").prop("hidden")) closeMini();
+    if (!$("#mini").prop("hidden")) {
+      closeMini();
+      return;
+    }
+    if (selectMode) setSelectMode(false);
   });
 
   $("#mini").on("click", ".format-btn", async function () {
