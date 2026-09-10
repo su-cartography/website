@@ -89,9 +89,22 @@
           <div class="select-bar-actions">
             <button type="button" id="select-all" class="select-bar-btn">Select all</button>
             <button type="button" id="select-clear" class="select-bar-btn">Clear</button>
-            <button type="button" id="select-dl-png" class="dl-btn dl-png" disabled>Download PNGs</button>
-            <button type="button" id="select-dl-svg" class="dl-btn dl-svg" disabled>Download SVGs</button>
-            <button type="button" id="select-dl-csv" class="dl-btn dl-csv" disabled>Download metadata</button>
+            <button type="button" id="select-dl-png" class="select-dl select-dl-png" disabled title="Download selected PNGs and their metadata">
+              <svg class="select-dl-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12"></path>
+                <path d="m7 10 5 5 5-5"></path>
+                <path d="M5 21h14"></path>
+              </svg>
+              <span class="select-dl-label">Download PNGs</span>
+            </button>
+            <button type="button" id="select-dl-svg" class="select-dl select-dl-svg" disabled title="Download selected SVGs and their metadata">
+              <svg class="select-dl-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12"></path>
+                <path d="m7 10 5 5 5-5"></path>
+                <path d="M5 21h14"></path>
+              </svg>
+              <span class="select-dl-label">Download SVGs</span>
+            </button>
             <button type="button" id="select-done" class="select-bar-btn select-done">Done</button>
           </div>
         </div>

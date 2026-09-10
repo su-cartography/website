@@ -458,9 +458,120 @@ nav a[aria-current="page"]::after {
   color: #fff;
 }
 
-.select-bar .dl-btn {
-  padding: 0.45rem 0.85rem;
+.select-dl {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+  padding: 0.5rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  font: inherit;
   font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  isolation: isolate;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  transition:
+    transform 0.22s var(--ease),
+    box-shadow 0.22s var(--ease),
+    filter 0.22s var(--ease),
+    opacity 0.2s;
+}
+
+.select-dl::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 45%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.55s var(--ease);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.select-dl > * {
+  position: relative;
+  z-index: 1;
+}
+
+.select-dl-icon {
+  flex-shrink: 0;
+  transition: transform 0.25s var(--ease);
+}
+
+.select-dl:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: saturate(1.08);
+}
+
+.select-dl:not(:disabled):hover::before {
+  transform: translateX(120%);
+}
+
+.select-dl:not(:disabled):hover .select-dl-icon {
+  animation: select-dl-bounce 0.55s var(--ease);
+}
+
+.select-dl:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+
+.select-dl:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: grayscale(0.2);
+}
+
+.select-dl.is-busy {
+  cursor: wait;
+  opacity: 0.85;
+}
+
+.select-dl.is-busy .select-dl-icon {
+  animation: select-dl-spin 0.8s linear infinite;
+}
+
+.select-dl-png {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 45%),
+    linear-gradient(135deg, #4f8cff 0%, #2f6fed 55%, #1f4fd6 100%);
+  box-shadow: 0 6px 16px rgba(47, 111, 237, 0.35);
+}
+
+.select-dl-png:not(:disabled):hover {
+  box-shadow: 0 10px 22px rgba(47, 111, 237, 0.42);
+}
+
+.select-dl-svg {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 45%),
+    linear-gradient(135deg, #e05aa8 0%, #c43d8a 55%, #9e2f6d 100%);
+  box-shadow: 0 6px 16px rgba(196, 61, 138, 0.35);
+}
+
+.select-dl-svg:not(:disabled):hover {
+  box-shadow: 0 10px 22px rgba(196, 61, 138, 0.42);
+}
+
+@keyframes select-dl-bounce {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(2px); }
+  70% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes select-dl-spin {
+  to { transform: rotate(360deg); }
 }
 
 .format-mode {
@@ -524,42 +635,6 @@ nav a[aria-current="page"]::after {
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.45);
   scrollbar-color: var(--purple) transparent;
-}
-
-.dl-btn {
-  display: inline-block;
-  padding: 0.65rem 1.15rem;
-  border: 0;
-  border-radius: 0.375rem;
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-}
-
-.dl-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.dl-btn:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
-}
-
-.dl-png {
-  background: #2f6fed;
-}
-
-.dl-svg {
-  background: #c43d8a;
-}
-
-.dl-csv {
-  background: #2f9e5b;
 }
 
 .icons.is-status {

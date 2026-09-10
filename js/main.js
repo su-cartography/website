@@ -299,7 +299,7 @@ function pickedIcons() {
 function updateSelectBar() {
   const n = picked.size;
   $("#select-count").text(n === 1 ? "1 selected" : `${n} selected`);
-  $("#select-dl-png, #select-dl-svg, #select-dl-csv").prop("disabled", n === 0);
+  $("#select-dl-png, #select-dl-svg").prop("disabled", n === 0);
   $("#select-bar").prop("hidden", !selectMode);
   $("#select-toggle")
     .attr("aria-pressed", selectMode ? "true" : "false")
@@ -346,16 +346,12 @@ async function downloadPicked(kind, $btn) {
   const list = pickedIcons();
   if (!list.length) return;
 
-  const label = $btn.text();
-  $btn.prop("disabled", true).text("Preparing…");
+  const $label = $btn.find(".select-dl-label");
+  const label = $label.text();
+  $btn.prop("disabled", true).addClass("is-busy");
+  $label.text("Preparing…");
 
   try {
-    if (kind === "csv") {
-      const blob = new Blob([selectedMetadataCsv(list)], { type: "text/csv;charset=utf-8" });
-      await saveFile(blob, "selected-icons-metadata.csv");
-      return;
-    }
-
     if (kind === "svg") await ensureSvgZip();
     if (kind === "png" && !pngZip) throw new Error("PNG zip is not loaded yet.");
 
@@ -373,13 +369,17 @@ async function downloadPicked(kind, $btn) {
       return;
     }
 
+    // Include metadata for the same selected icons in the zip
+    out.file("selected-icons-metadata.csv", selectedMetadataCsv(list));
+
     const zipBlob = await out.generateAsync({ type: "blob" });
     await saveFile(zipBlob, `selected-icons-${kind}.zip`);
   } catch (err) {
     console.error(err);
     alert(`Could not prepare that ${kind.toUpperCase()} download.`);
   } finally {
-    $btn.prop("disabled", false).text(label);
+    $btn.prop("disabled", false).removeClass("is-busy");
+    $label.text(label);
     updateSelectBar();
   }
 }
@@ -600,10 +600,6 @@ $(function () {
 
   $("#select-dl-svg").on("click", function () {
     downloadPicked("svg", $(this));
-  });
-
-  $("#select-dl-csv").on("click", function () {
-    downloadPicked("csv", $(this));
   });
 
   $("#mini").on("click", ".mini-dl-option", function (e) {
