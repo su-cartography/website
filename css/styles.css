@@ -1094,6 +1094,29 @@ body.mini-open {
   max-width: 40rem;
 }
 
+.page ul {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  max-width: 40rem;
+}
+
+.page li {
+  margin-bottom: 1rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.page li a {
+  font-weight: 600;
+}
+
+.page li p {
+  margin: 0.4rem 0 0;
+}
+
 /* Footer */
 
 footer {
