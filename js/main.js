@@ -511,10 +511,95 @@ async function loadGallery() {
     ).filter(Boolean);
 
     applySearch();
+    startIconConfetti().catch(console.error);
   } catch (err) {
     console.error(err);
     showStatus("Could not load icons. Use a local server (http://localhost), not a file:// page.", true);
   }
+}
+
+function shufflePick(list, count) {
+  const copy = list.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy.slice(0, count);
+}
+
+async function startIconConfetti() {
+  if (!icons.length) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if ($(".icon-confetti").length) return;
+
+  const pool = shufflePick(
+    icons.filter((icon) => icon.png),
+    12
+  );
+  if (!pool.length) return;
+
+  // Load SVGs for half the pool so confetti can mix PNG + SVG
+  try {
+    await ensureSvgZip();
+    await Promise.all(
+      pool.slice(0, Math.ceil(pool.length / 2)).map(async (icon) => {
+        if (!icon.svg) icon.svg = await fileFromZip(svgZip, "svg", icon.id);
+      })
+    );
+  } catch (err) {
+    console.warn("Confetti SVG mix unavailable; using PNGs only.", err);
+  }
+
+  const hosts = [
+    { sel: ".hero", count: 20 },
+    { sel: "#about", count: 8 },
+    { sel: "#contribute", count: 10 },
+  ];
+  const layouts = [
+    { left: "4%", top: "10%", size: "3rem", dur: "7s", delay: "0s", dx: "34px", dy: "-44px", rot: "-8deg" },
+    { left: "12%", top: "58%", size: "2.5rem", dur: "8s", delay: "-2s", dx: "-28px", dy: "-36px", rot: "10deg" },
+    { left: "78%", top: "8%", size: "3.3rem", dur: "9s", delay: "-1s", dx: "24px", dy: "32px", rot: "-4deg" },
+    { left: "88%", top: "42%", size: "2.8rem", dur: "7.5s", delay: "-3s", dx: "-36px", dy: "-30px", rot: "14deg" },
+    { left: "92%", top: "72%", size: "3.1rem", dur: "8.5s", delay: "-0.5s", dx: "22px", dy: "-48px", rot: "-12deg" },
+    { left: "6%", top: "82%", size: "2.6rem", dur: "8s", delay: "-4s", dx: "30px", dy: "24px", rot: "6deg" },
+    { left: "18%", top: "28%", size: "2.9rem", dur: "9.5s", delay: "-1.5s", dx: "-20px", dy: "-40px", rot: "-16deg" },
+    { left: "70%", top: "26%", size: "2.4rem", dur: "6.5s", delay: "-2.5s", dx: "38px", dy: "22px", rot: "8deg" },
+  ];
+
+  hosts.forEach((host, hostIndex) => {
+    const $host = $(host.sel);
+    if (!$host.length) return;
+
+    $host.addClass("has-confetti");
+    const $layer = $('<div class="icon-confetti" aria-hidden="true"></div>');
+    const count = host.count;
+
+    for (let i = 0; i < count; i++) {
+      const icon = pool[i % pool.length];
+      const layout = layouts[(i + hostIndex * 3) % layouts.length];
+      const preferSvg = i % 2 === 1;
+      const src = preferSvg && icon.svg ? icon.svg : icon.png;
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "";
+      img.loading = "lazy";
+      img.draggable = false;
+      img.className = preferSvg && icon.svg ? "is-svg" : "is-png";
+      img.style.left = layout.left;
+      img.style.top = layout.top;
+      img.style.width = layout.size;
+      img.style.setProperty("--dur", layout.dur);
+      img.style.setProperty("--delay", layout.delay);
+      img.style.setProperty("--dx", layout.dx);
+      img.style.setProperty("--dy", layout.dy);
+      img.style.setProperty("--rot", layout.rot);
+      $layer.append(img);
+    }
+
+    $host.prepend($layer);
+  });
 }
 
 $(function () {
