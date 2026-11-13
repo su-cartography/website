@@ -1074,7 +1074,7 @@ body.mini-open {
 .icon-confetti img {
   position: absolute;
   height: auto;
-  opacity: 0.55;
+  opacity: 0.75;
   filter: drop-shadow(0 6px 14px rgba(91, 61, 154, 0.22));
   animation: confetti-float var(--dur, 8s) ease-in-out infinite;
   animation-delay: var(--delay, 0s);

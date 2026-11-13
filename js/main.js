@@ -553,9 +553,9 @@ async function startIconConfetti() {
   }
 
   const hosts = [
-    { sel: ".hero", count: 20 },
+    { sel: ".hero", count: 10 },
     { sel: "#about", count: 8 },
-    { sel: "#contribute", count: 10 },
+    { sel: "#contribute", count: 6 },
   ];
   const layouts = [
     { left: "4%", top: "10%", size: "3rem", dur: "7s", delay: "0s", dx: "34px", dy: "-44px", rot: "-8deg" },
